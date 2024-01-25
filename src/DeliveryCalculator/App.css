@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.DeliveryCalculator {
+  @apply flex items-center justify-center h-screen;
+}
+
+form {
+  @apply max-w-xs w-full p-4 border-4 border-gray-300 rounded shadow-md;
+}
+
+label {
+  @apply mb-4;
+}
+
+input {
+  @apply w-full p-2 mb-4 border border-gray-300;
+}
+
+button {
+  @apply text-black p-2 border border-gray-300 rounded cursor-pointer;
+}
+
+button:hover {
+  @apply bg-green-600;
+}
+
+p {
+  @apply mt-5;
+}
