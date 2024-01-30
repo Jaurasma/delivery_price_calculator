@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import { calculateDeliveryPrice } from "./calculateDeliveryPrice";
+import InputField from "./InputField";
+import TimeInputField from "./TimeInputField";
+
 import "./App.css";
 
 function getCurrentDateTime() {
@@ -7,16 +11,16 @@ function getCurrentDateTime() {
   return now.toISOString().slice(0, 16);
 }
 
-function DeliveryCalculator() {
-  const initialState = {
-    cartValue: "",
-    deliveryDistance: 0,
-    numberOfItems: 1,
-    orderTime: getCurrentDateTime(),
-  };
+interface CalculatedState {
+  cartSurcharge: number;
+  deliveryCharge: number;
+  itemSurcharge: number;
+  rushHourCharge: number;
+  deliveryPrice: number;
+}
 
-  const calculatedState = {
-    showBreakdown: false,
+function DeliveryCalculator() {
+  const calculatedState: CalculatedState = {
     cartSurcharge: 0,
     deliveryCharge: 0,
     itemSurcharge: 0,
@@ -24,165 +28,110 @@ function DeliveryCalculator() {
     deliveryPrice: 0,
   };
 
-  const [state, setState] = useState(initialState);
-  const [priceState, setPriceState] = useState(calculatedState);
+  const [priceState, setPriceState] =
+    useState<CalculatedState>(calculatedState);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const [cartValue, setCartValue] = useState(0);
+  const [deliveryDistance, setDeliveryDistance] = useState(0);
+  const [numberOfItems, setNumberOfItems] = useState(1);
+  const [orderTime, setOrderTime] = useState(getCurrentDateTime());
 
-    if (name === "orderTime") {
-      setState((prev) => ({ ...prev, [name]: value }));
-    } else {
-      const isValidNumber = /^\d*\.?\d*$/.test(value);
-      if (isValidNumber || value === "") {
-        setState((prev) => ({
-          ...prev,
-          [name]: name === "cartValue" ? value : Number(value),
-        }));
-      }
-    }
-  };
+  const [breakdownVisible, setBreakdownVisible] = useState(false);
 
-  const changeBrakedownStatus = () => {
-    setPriceState((prev) => ({
-      ...prev,
-      showBreakdown: !prev.showBreakdown, // Toggle the value of showBreakdown
-    }));
-  };
+  const toggleBreakdown = () => setBreakdownVisible((prev) => !prev);
 
-  const calculateDeliveryPrice = () => {
-    if (
-      state.cartValue.trim() === "" ||
-      state.deliveryDistance < 0 ||
-      state.numberOfItems <= 0 ||
-      state.orderTime === ""
-    ) {
-      alert("Please fill in all required fields before calculating.");
-      return; // Stop the calculation if any field is empty
-    }
-    // Calculate individual surcharges
-    const cartSurcharge = Math.max(10 - parseFloat(state.cartValue), 0);
-    const deliveryCharge =
-      state.deliveryDistance <= 1000
-        ? 2
-        : 2 + Math.ceil((state.deliveryDistance - 1000) / 500);
-    const itemSurcharge = Math.max(state.numberOfItems - 4, 0) * 0.5;
-
-    // Calculate total delivery price without rush hour charge
-    const totalDeliveryPrice = cartSurcharge + deliveryCharge + itemSurcharge;
-
-    // Apply rush hour charge if applicable
-    const orderDateTime = new Date(state.orderTime);
-    const isFriday = orderDateTime.getDay() === 5; // 5 is Friday
-    const isTimeInRange =
-      orderDateTime.getHours() >= 15 && orderDateTime.getHours() < 19;
-
-    let rushHourCharge = 0;
-
-    if (isFriday && isTimeInRange) {
-      rushHourCharge = totalDeliveryPrice * 0.2;
-    }
-
-    // Calculate final delivery price with rush hour charge
-    const finalDeliveryPrice = Math.min(
-      totalDeliveryPrice + rushHourCharge,
-      15
+  const handleCalculateDeliveryPrice = () => {
+    calculateDeliveryPrice(
+      cartValue,
+      deliveryDistance,
+      numberOfItems,
+      orderTime,
+      setPriceState
     );
-
-    // Set the updated state in a single call
-    setPriceState((prev) => ({
-      ...prev,
-      cartSurcharge,
-      deliveryCharge,
-      itemSurcharge,
-      rushHourCharge,
-      deliveryPrice: finalDeliveryPrice,
-    }));
-
-    // Handle special cases (cartValue >= 200)
-    if (parseFloat(state.cartValue) >= 200) {
-      setPriceState((prev) => ({
-        ...prev,
-        deliveryPrice: 0,
-      }));
-    }
   };
 
   return (
-    <div className="DeliveryCalculator">
+    <div className="DeliveryCalculator ">
       <form>
         <header>
-          <h3 className="text-center border-2 border-gray-300">
-            Delivery fee calculator
-          </h3>
+          <h1 className="text-center text-lg divide-x-8 ">
+            Delivery Fee Calculator
+          </h1>
         </header>
-        <label>
-          Cart value (€)*
-          <input
-            name="cartValue"
-            placeholder="Value of your cart"
-            aria-label="Cart value in euros"
-            type="text"
-            data-test-id="cartValue"
-            value={state.cartValue}
-            onChange={handleChange}
-          />
-        </label>
-        <label>
-          Delivery distance (m)*
-          <input
-            name="deliveryDistance"
-            type="number"
-            aria-label="Delivery distance in meters"
-            min="0"
-            step="100"
-            data-test-id="deliveryDistance"
-            value={state.deliveryDistance}
-            onChange={handleChange}
-          />
-        </label>
-        <label>
-          Amount of items*
-          <input
-            name="numberOfItems"
-            type="number"
-            aria-label="Number of items"
-            min="1"
-            data-test-id="numberOfItems"
-            value={state.numberOfItems}
-            onChange={handleChange}
-          />
-        </label>
-        <label>
-          Time*
-          <input
-            name="orderTime"
-            type="datetime-local"
-            aria-label="Order time"
-            data-test-id="orderTime"
-            value={state.orderTime}
-            onChange={handleChange}
-          />
-        </label>
-        <button type="button" onClick={calculateDeliveryPrice}>
+        <InputField
+          label="💰 Cart value (€)"
+          name="cartValue"
+          type="number"
+          placeholder="Value of your cart"
+          ariaLabel="Cart value in euros"
+          min={0}
+          dataTestId="cartValue"
+          value={cartValue}
+          additionalInfo="Small order surcharge limit: 10,00€"
+          onChange={setCartValue}
+        />
+        <InputField
+          label="📍 Delivery distance (m)"
+          name="deliveryDistance"
+          type="number"
+          placeholder="Delivery distance of your order"
+          ariaLabel="Delivery distance in meters"
+          min={0}
+          step={100}
+          dataTestId="deliveryDistance"
+          value={deliveryDistance}
+          additionalInfo="Delivery cost: 2,00€ Long delivery surcharge limit 1000m"
+          onChange={setDeliveryDistance}
+        />
+        <InputField
+          label="🛒 Amount of items"
+          name="numberOfItems"
+          type="number"
+          placeholder="Number of itmes in your cart"
+          ariaLabel="Number of items"
+          min={1}
+          step={1}
+          dataTestId="numberOfItems"
+          value={numberOfItems}
+          additionalInfo="Item surcharge limit: 4"
+          onChange={setNumberOfItems}
+        />
+        <TimeInputField
+          label="⏰ Time"
+          name="orderTime"
+          type="datetime-local"
+          ariaLabel="Order time"
+          dataTestId="orderTime"
+          value={orderTime}
+          additionalInfo="Fridays 15.00-19.00 prices are multiplied to 1.2x"
+          onChange={setOrderTime}
+        />
+        <button
+          type="button"
+          name="calcualationButton"
+          className="text-black p-2 m-2.5 bg-sky-400 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-full mx-auto block"
+          onClick={handleCalculateDeliveryPrice}
+        >
           Calculate Delivery Price
         </button>
-        <p className="text-center border-2	border-gray-300">
+        <p className="text-center border text-lg	border-gray-300 p-2">
           Delivery price: {priceState.deliveryPrice} €
         </p>
-        <div>
-          <button type="button" onClick={changeBrakedownStatus}>
-            {priceState.showBreakdown ? "Hide Breakdown" : "Show Breakdown"}
-          </button>
-          {priceState.showBreakdown && (
-            <>
-              <p>Cart value surcharge: {priceState.cartSurcharge} €</p>
-              <p>Distance charge: {priceState.deliveryCharge} €</p>
-              <p>Item surcharge: {priceState.itemSurcharge} €</p>
-              <p>Rushhour charge: {priceState.rushHourCharge} €</p>
-            </>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={toggleBreakdown}
+          className="text-sm text-black p-2 m-2.5 bg-sky-400 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-full mx-auto block"
+        >
+          {breakdownVisible ? "Hide Breakdown 🔺" : "Show Breakdown 🔻"}
+        </button>
+        {breakdownVisible && (
+          <div className="text-sm text-center">
+            <p>Cart value surcharge: {priceState.cartSurcharge} €</p>
+            <p>Distance charge: {priceState.deliveryCharge} €</p>
+            <p>Item surcharge: {priceState.itemSurcharge} €</p>
+            <p>Rushhour charge: {priceState.rushHourCharge} €</p>
+          </div>
+        )}
       </form>
     </div>
   );
