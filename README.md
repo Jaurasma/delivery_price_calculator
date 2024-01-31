@@ -25,10 +25,10 @@ To run this project, you'll need to have Node.js and npm installed on your machi
    npm -v
    ```
 
-4. **Running the program:**
+## Running the program:
 
-   ```bash
-   cd path/to/your-project
-   make
+```bash
+cd path/to/your-project
+make
 
-   ```
+```
