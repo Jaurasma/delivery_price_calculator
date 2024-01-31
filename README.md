@@ -32,3 +32,16 @@ cd path/to/your-project
 make
 
 ```
+
+Open your browser and visit [link to the program](http://localhost:3000)
+
+## How to use
+
+1. Fill in the required information in the input fields:
+   - Cart value (€): The value of your cart.
+   - Delivery distance (m): The distance of your delivery order.
+   - Amount of items: The number of items in your cart.
+   - Time: The time of your order.
+2. Click the "Calculate Delivery Price" button.
+3. The estimated delivery price will be displayed.
+4. Optionally, click the "Show Breakdown" button to see a detailed breakdown of the calculated charges.
