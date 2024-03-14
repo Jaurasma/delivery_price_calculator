@@ -1,6 +1,4 @@
-# Delivery price calulator for wolt internship application
-
-[link to the assignment](https://github.com/woltapp/engineering-internship-2024/blob/main/README.md)
+![ui](/screenshot.png)
 
 # Getting Started
 
@@ -28,7 +26,7 @@ To run this project, you'll need to have Node.js and npm installed on your machi
 ## Running the program:
 
 ```bash
-cd path/to/your-project
+cd path/to/project
 make
 
 ```

@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import { calculateDeliveryPrice } from "./calculateDeliveryPrice";
-import InputField from "./InputField";
-import TimeInputField from "./TimeInputField";
+// DeliveryCalculator.tsx
 
-import "./App.css";
+import { useState } from "react";
+import { CalculateDeliveryPrice } from "./CalculateDeliveryPrice";
+import InputField from "../components/InputField";
+import TimeInputField from "../components/TimeInputField";
 
+// Function to get the current date and time formatted for input value
 function getCurrentDateTime() {
   const now = new Date();
-  // Format the current date and time as "YYYY-MM-DDTHH:mm" for the input value, no need for seconds?
   return now.toISOString().slice(0, 16);
 }
 
@@ -19,29 +19,27 @@ interface CalculatedState {
   deliveryPrice: number;
 }
 
-function DeliveryCalculator() {
-  const calculatedState: CalculatedState = {
+function App() {
+  // State hooks
+  const [priceState, setPriceState] = useState<CalculatedState>({
     cartSurcharge: 0,
     deliveryCharge: 0,
     itemSurcharge: 0,
     rushHourCharge: 0,
     deliveryPrice: 0,
-  };
-
-  const [priceState, setPriceState] =
-    useState<CalculatedState>(calculatedState);
-
+  });
   const [cartValue, setCartValue] = useState(0);
   const [deliveryDistance, setDeliveryDistance] = useState(0);
   const [numberOfItems, setNumberOfItems] = useState(1);
   const [orderTime, setOrderTime] = useState(getCurrentDateTime());
-
   const [breakdownVisible, setBreakdownVisible] = useState(false);
 
+  // Toggle visibility of the breakdown section
   const toggleBreakdown = () => setBreakdownVisible((prev) => !prev);
 
+  // Function to handle the calculation of delivery price
   const handleCalculateDeliveryPrice = () => {
-    calculateDeliveryPrice(
+    CalculateDeliveryPrice(
       cartValue,
       deliveryDistance,
       numberOfItems,
@@ -51,10 +49,10 @@ function DeliveryCalculator() {
   };
 
   return (
-    <div className="DeliveryCalculator ">
-      <form>
+    <div className="flex items-center justify-center h-screen bg-sky-400 font-bold">
+      <main className="text-white max-w-xs items-center w-full p-4 rounded shadow-xl shadow-sky-400/40 bg-gray-900">
         <header>
-          <h1 className="text-center text-lg divide-x-8 ">
+          <h1 className="text-center text-xl divide-x-8 ">
             Delivery Fee Calculator
           </h1>
         </header>
@@ -65,6 +63,7 @@ function DeliveryCalculator() {
           placeholder="Value of your cart"
           ariaLabel="Cart value in euros"
           min={0}
+          step={0.01}
           dataTestId="cartValue"
           value={cartValue}
           additionalInfo="Small order surcharge limit: 10,00€"
@@ -80,7 +79,7 @@ function DeliveryCalculator() {
           step={100}
           dataTestId="deliveryDistance"
           value={deliveryDistance}
-          additionalInfo="Delivery cost: 2,00€ Long delivery surcharge limit 1000m"
+          additionalInfo="Base delivery fee: 2,00€ Long delivery surcharge limit 1000m"
           onChange={setDeliveryDistance}
         />
         <InputField
@@ -108,33 +107,36 @@ function DeliveryCalculator() {
         />
         <button
           type="button"
-          name="calcualationButton"
-          className="text-black p-2 m-2.5 bg-sky-400 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-full mx-auto block"
+          name="calculationButton"
+          className="p-4 m-2.5 bg-sky-400 hover:bg-sky-500 text-white font-bold py-3 px-11 rounded-full mx-auto block"
           onClick={handleCalculateDeliveryPrice}
         >
           Calculate Delivery Price
         </button>
-        <p className="text-center border text-lg	border-gray-300 p-2">
-          Delivery price: {priceState.deliveryPrice} €
+        <p className="text-center border text-lg rounded-full border-gray-300 p-2 m-4 flex flex-row items-center justify-center">
+          <span>Delivery price:&nbsp;</span>
+          <p data-testid="fee">{priceState.deliveryPrice.toFixed(2)}</p>
+          <span>€</span>
         </p>
         <button
           type="button"
+          name="breakdownButton"
           onClick={toggleBreakdown}
-          className="text-sm text-black p-2 m-2.5 bg-sky-400 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-full mx-auto block"
+          className="text-sm p-1 text-white font-bold mx-auto block"
         >
           {breakdownVisible ? "Hide Breakdown 🔺" : "Show Breakdown 🔻"}
         </button>
         {breakdownVisible && (
           <div className="text-sm text-center">
-            <p>Cart value surcharge: {priceState.cartSurcharge} €</p>
-            <p>Distance charge: {priceState.deliveryCharge} €</p>
-            <p>Item surcharge: {priceState.itemSurcharge} €</p>
-            <p>Rushhour charge: {priceState.rushHourCharge} €</p>
+            <p>Cart value surcharge: {priceState.cartSurcharge.toFixed(2)} €</p>
+            <p>Distance charge: {priceState.deliveryCharge.toFixed(2)} €</p>
+            <p>Item surcharge: {priceState.itemSurcharge.toFixed(2)} €</p>
+            <p>Rushhour charge: {priceState.rushHourCharge.toFixed(2)} €</p>
           </div>
         )}
-      </form>
+      </main>
     </div>
   );
 }
 
-export default DeliveryCalculator;
+export default App;

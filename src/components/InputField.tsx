@@ -29,7 +29,7 @@ const InputField: React.FC<InputProps> = ({
 }) => {
   return (
     <div className="mb-4">
-      <label className="block mb-2 p-2" title={additionalInfo}>
+      <label className="block mb-2 p-2 " title={additionalInfo}>
         {label}
         <input
           name={name}
@@ -41,7 +41,7 @@ const InputField: React.FC<InputProps> = ({
           data-test-id={dataTestId}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded-full text-black"
         />
       </label>
     </div>
